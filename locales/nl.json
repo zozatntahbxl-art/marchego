@@ -1,0 +1,97 @@
+{
+  "app": {
+    "name": "MarchéGo",
+    "tagline": "Belgische markten, bij u thuis geleverd",
+    "nearby": "Markten in de buurt"
+  },
+  "nav": {
+    "home": "Home",
+    "markets": "Markten",
+    "orders": "Bestellingen",
+    "account": "Account",
+    "cart": "Winkelmand",
+    "vendor": "Verkopersruimte",
+    "courier": "Koeriersruimte",
+    "admin": "Beheer"
+  },
+  "auth": {
+    "login": "Inloggen",
+    "register": "Account aanmaken",
+    "logout": "Uitloggen",
+    "email": "E-mailadres",
+    "password": "Wachtwoord",
+    "phone": "Telefoonnummer",
+    "role": "Ik schrijf me in als",
+    "client": "Klant",
+    "courier": "Koerier",
+    "vendor": "Marktkramer",
+    "forgot": "Wachtwoord vergeten?",
+    "or": "of",
+    "google": "Doorgaan met Google",
+    "apple": "Doorgaan met Apple",
+    "verifyPhone": "Mijn nummer bevestigen"
+  },
+  "market": {
+    "open": "Open",
+    "closed": "Gesloten",
+    "paused": "Gepauzeerd",
+    "opensAt": "Opent om {time}",
+    "closesAt": "Sluit om {time}",
+    "distance": "op {distance}",
+    "vendors": "{count} verkopers",
+    "deliveryZone": "Levering binnen {km} km"
+  },
+  "cart": {
+    "title": "Uw winkelmand",
+    "empty": "Uw winkelmand is leeg",
+    "subtotal": "Subtotaal",
+    "delivery": "Levering",
+    "service": "Servicekosten",
+    "tip": "Fooi",
+    "total": "Totaal",
+    "minOrder": "Minimumbestelling: {amount}",
+    "checkout": "Bestellen",
+    "add": "Toevoegen"
+  },
+  "order": {
+    "placed": "Bestelling bevestigd",
+    "tracking": "Opvolging",
+    "eta": "Geschatte aankomst",
+    "cancel": "Bestelling annuleren",
+    "help": "Een probleem?"
+  },
+  "courier": {
+    "online": "Online",
+    "offline": "Offline",
+    "newOffer": "Nieuwe rit",
+    "accept": "Aanvaarden",
+    "refuse": "Weigeren",
+    "earnings": "Inkomsten"
+  },
+  "vendor": {
+    "orders": "Bestellingen",
+    "products": "Producten",
+    "ready": "Klaarzetten",
+    "accept": "Aanvaarden"
+  },
+  "legal": {
+    "terms": "Algemene voorwaarden",
+    "privacy": "Privacy",
+    "imprint": "Wettelijke vermeldingen",
+    "cookies": "Cookies"
+  },
+  "common": {
+    "save": "Opslaan",
+    "cancel": "Annuleren",
+    "loading": "Laden…",
+    "error": "Er is een fout opgetreden",
+    "retry": "Opnieuw",
+    "search": "Zoeken",
+    "filters": "Filters",
+    "back": "Terug",
+    "next": "Volgende",
+    "close": "Sluiten",
+    "yes": "Ja",
+    "no": "Nee"
+  }
+}

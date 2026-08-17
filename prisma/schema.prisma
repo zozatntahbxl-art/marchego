@@ -1,0 +1,1492 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// MarchéGo — schéma de données
+//
+// Conventions :
+//  • Tous les montants sont stockés en CENTIMES d'euro (Int) pour éviter les
+//    erreurs d'arrondi des flottants. Les taux sont en points de base (bps),
+//    1500 bps = 15 %.
+//  • Les positions sont stockées à la fois en `latitude`/`longitude` (Float,
+//    lisibles par Prisma) et dans une colonne PostGIS `geography(Point,4326)`
+//    maintenue par trigger (voir migration `postgis_setup`). Les requêtes de
+//    proximité passent par `$queryRaw` (cf. `lib/geo/queries.ts`).
+//  • Les données sensibles (IBAN, numéros de document) sont chiffrées en
+//    AES-256-GCM avant insertion (cf. `lib/security/crypto.ts`).
+// ─────────────────────────────────────────────────────────────────────────────
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions", "fullTextSearch"]
+  binaryTargets   = ["native", "rhel-openssl-3.0.x", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl  = env("DIRECT_URL")
+  extensions = [postgis, pg_trgm, uuidOssp(map: "uuid-ossp")]
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ENUMS
+// ═══════════════════════════════════════════════════════════════════════════
+
+enum UserRole {
+  CLIENT
+  LIVREUR
+  VENDEUR
+  ADMIN
+}
+
+enum AccountStatus {
+  ACTIF
+  EN_ATTENTE
+  SUSPENDU
+  DESACTIVE
+}
+
+enum Language {
+  FR
+  NL
+  DE
+  EN
+}
+
+enum VerificationStatus {
+  NON_SOUMIS
+  EN_ATTENTE
+  APPROUVE
+  REJETE
+  COMPLEMENT_REQUIS
+}
+
+enum VehicleType {
+  VELO
+  VELO_CARGO
+  SCOOTER
+  VOITURE
+  CAMIONNETTE
+  A_PIED
+}
+
+enum MarketStatus {
+  OUVERT
+  FERME
+  EN_PAUSE
+}
+
+enum ProductUnit {
+  PIECE
+  KG
+  GRAMME
+  LITRE
+  BOTTE
+  BARQUETTE
+  PORTION
+  PAQUET
+  DOUZAINE
+}
+
+enum ProductLabel {
+  BIO
+  ARTISANAL
+  LOCAL
+  SANS_GLUTEN
+  VEGAN
+  VEGETARIEN
+  HALAL
+  CASHER
+  COMMERCE_EQUITABLE
+  FAIT_MAISON
+  SANS_LACTOSE
+}
+
+enum OrderStatus {
+  EN_ATTENTE
+  ACCEPTEE_PAR_VENDEUR
+  PREPAREE
+  EN_ATTENTE_DE_LIVREUR
+  LIVREUR_ASSIGNE
+  EN_ROUTE_VERS_MARCHE
+  EN_RECUPERATION
+  EN_ROUTE_VERS_CLIENT
+  LIVREE
+  ANNULEE
+}
+
+enum VendorOrderStatus {
+  EN_ATTENTE
+  ACCEPTEE
+  EN_PREPARATION
+  PRETE
+  RECUPEREE
+  REFUSEE
+  ANNULEE
+}
+
+enum PaymentStatus {
+  EN_ATTENTE
+  AUTORISE
+  PAYE
+  ECHOUE
+  REMBOURSE_PARTIEL
+  REMBOURSE
+  ANNULE
+}
+
+enum DeliveryStatus {
+  NON_ASSIGNEE
+  RECHERCHE_LIVREUR
+  ASSIGNEE
+  EN_ROUTE_VERS_MARCHE
+  ARRIVE_AU_MARCHE
+  EN_RECUPERATION
+  EN_ROUTE_VERS_CLIENT
+  ARRIVE_CHEZ_CLIENT
+  LIVREE
+  ECHOUEE
+  ANNULEE
+}
+
+enum DeliveryOfferStatus {
+  ENVOYEE
+  ACCEPTEE
+  REFUSEE
+  EXPIREE
+  ANNULEE
+}
+
+enum ProofType {
+  PHOTO
+  CODE_PIN
+  SIGNATURE
+  SANS_CONTACT
+}
+
+enum ReviewTargetRole {
+  VENDEUR
+  LIVREUR
+  PRODUIT
+}
+
+enum DisputeReason {
+  PRODUIT_MANQUANT
+  PRODUIT_ABIME
+  PRODUIT_INCORRECT
+  RETARD_IMPORTANT
+  COMMANDE_NON_LIVREE
+  COMPORTEMENT_INAPPROPRIE
+  ERREUR_FACTURATION
+  AUTRE
+}
+
+enum DisputeStatus {
+  OUVERT
+  EN_EXAMEN
+  INFORMATION_REQUISE
+  RESOLU_REMBOURSEMENT
+  RESOLU_SANS_SUITE
+  ESCALADE
+  CLOS
+}
+
+enum NotificationType {
+  COMMANDE_CONFIRMEE
+  COMMANDE_ACCEPTEE
+  COMMANDE_PREPAREE
+  LIVREUR_ASSIGNE
+  LIVREUR_AU_MARCHE
+  COMMANDE_EN_ROUTE
+  COMMANDE_LIVREE
+  COMMANDE_ANNULEE
+  NOUVELLE_COMMANDE_VENDEUR
+  NOUVELLE_MISSION_LIVREUR
+  MISSION_ANNULEE
+  MISSION_RAPPEL
+  PAIEMENT_RECU
+  REMBOURSEMENT_EMIS
+  LITIGE_OUVERT
+  LITIGE_MIS_A_JOUR
+  LITIGE_RESOLU
+  VERIFICATION_REQUISE
+  COMPTE_APPROUVE
+  COMPTE_REJETE
+  NOUVEAU_MESSAGE
+  VERSEMENT_EFFECTUE
+  SYSTEME
+}
+
+enum NotificationChannel {
+  IN_APP
+  PUSH
+  EMAIL
+  SMS
+}
+
+enum ConversationType {
+  CLIENT_LIVREUR
+  CLIENT_VENDEUR
+  CLIENT_SUPPORT
+  LIVREUR_VENDEUR
+  LIVREUR_SUPPORT
+  VENDEUR_SUPPORT
+}
+
+enum PayoutStatus {
+  PROGRAMME
+  EN_COURS
+  VERSE
+  ECHOUE
+  ANNULE
+}
+
+enum PayoutBeneficiary {
+  VENDEUR
+  LIVREUR
+}
+
+enum StripeAccountStatus {
+  NON_CREE
+  EN_ATTENTE
+  INFORMATIONS_REQUISES
+  ACTIF
+  RESTREINT
+  DESACTIVE
+}
+
+enum DeliverySlotType {
+  ASAP
+  PLANIFIE
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// UTILISATEURS & IDENTITÉ
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Miroir applicatif de `auth.users` (Supabase). L'authentification reste gérée
+/// par Supabase Auth ; `passwordHash` n'est renseigné que pour les comptes de
+/// démonstration créés hors Supabase (seed).
+model User {
+  id            String        @id @default(uuid()) @db.Uuid
+  /// Identifiant Supabase `auth.users.id` (identique à `id` en production).
+  supabaseId    String?       @unique @db.Uuid
+  email         String        @unique
+  phone         String?       @unique
+  passwordHash  String?
+  roles         UserRole[]    @default([CLIENT])
+  activeRole    UserRole      @default(CLIENT)
+  status        AccountStatus @default(ACTIF)
+  emailVerified Boolean       @default(false)
+  phoneVerified Boolean       @default(false)
+  lastLoginAt   DateTime?
+  /// RGPD : date de demande d'effacement (anonymisation différée de 30 jours).
+  deletionRequestedAt DateTime?
+  deletedAt     DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  profile             Profile?
+  addresses           Address[]
+  vendor              Vendor?
+  courier             Courier?
+  carts               Cart[]
+  orders              Order[]              @relation("ClientOrders")
+  reviewsWritten      Review[]             @relation("ReviewAuthor")
+  disputesOpened      Dispute[]            @relation("DisputeOpener")
+  disputesResolved    Dispute[]            @relation("DisputeResolver")
+  disputeMessages     DisputeMessage[]
+  notifications       Notification[]
+  pushSubscriptions   PushSubscription[]
+  chatMessages        ChatMessage[]
+  conversations       ConversationParticipant[]
+  auditLogs           AuditLog[]           @relation("AuditActor")
+  phoneVerifications  PhoneVerification[]
+  consents            ConsentRecord[]
+  orderStatusChanges  OrderStatusHistory[] @relation("StatusAuthor")
+  dataExports         DataExportRequest[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("users")
+}
+
+model Profile {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @unique @db.Uuid
+  firstName      String
+  lastName       String
+  avatarUrl      String?
+  language       Language @default(FR)
+  /// Préférences alimentaires, allergènes, options d'affichage.
+  preferences    Json     @default("{}")
+  /// Consentement explicite au partage de la position (RGPD).
+  locationConsent Boolean @default(false)
+  marketingOptIn Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+model Address {
+  id           String  @id @default(uuid()) @db.Uuid
+  userId       String  @db.Uuid
+  label        String  @default("Domicile")
+  street       String
+  houseNumber  String
+  boxNumber    String?
+  city         String
+  postalCode   String
+  country      String  @default("BE")
+  latitude     Float
+  longitude    Float
+  /// Colonne PostGIS maintenue par trigger depuis latitude/longitude.
+  location     Unsupported("geography(Point, 4326)")?
+  instructions String?
+  isDefault    Boolean @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders Order[]
+
+  @@index([userId])
+  @@index([postalCode])
+  @@map("addresses")
+}
+
+model PhoneVerification {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @db.Uuid
+  phone      String
+  codeHash   String
+  attempts   Int      @default(0)
+  verifiedAt DateTime?
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, phone])
+  @@map("phone_verifications")
+}
+
+/// Traçabilité RGPD des consentements (cookies, géolocalisation, marketing).
+model ConsentRecord {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String?  @db.Uuid
+  sessionId String?
+  purpose   String
+  granted   Boolean
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, purpose])
+  @@map("consent_records")
+}
+
+model DataExportRequest {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @db.Uuid
+  status      String    @default("EN_ATTENTE")
+  fileUrl     String?
+  requestedAt DateTime  @default(now())
+  completedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("data_export_requests")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// VENDEURS
+// ═══════════════════════════════════════════════════════════════════════════
+
+model Vendor {
+  id             String              @id @default(uuid()) @db.Uuid
+  userId         String              @unique @db.Uuid
+  businessName   String
+  slug           String              @unique
+  description    String?
+  /// Numéro d'entreprise BCE / numéro de TVA belge (format BE0XXXXXXXXX).
+  vatNumber      String              @unique
+  /// IBAN chiffré (AES-256-GCM). Ne jamais exposer côté client.
+  ibanEncrypted  String?
+  /// 4 derniers caractères de l'IBAN, pour affichage.
+  ibanLast4      String?
+  phone          String?
+  logoUrl        String?
+  coverUrl       String?
+  primaryCategoryId String?          @db.Uuid
+  verified       Boolean             @default(false)
+  status         AccountStatus       @default(EN_ATTENTE)
+  verificationStatus VerificationStatus @default(NON_SOUMIS)
+  rating         Float               @default(0)
+  ratingCount    Int                 @default(0)
+  /// Délai de préparation moyen annoncé, en minutes.
+  prepTimeMinutes Int                @default(15)
+  stripeAccountId String?            @unique
+  stripeAccountStatus StripeAccountStatus @default(NON_CREE)
+  /// Commission spécifique en bps ; `null` = valeur globale de la plateforme.
+  commissionBpsOverride Int?
+  acceptedTermsAt DateTime?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  primaryCategory  Category?           @relation(fields: [primaryCategoryId], references: [id], onDelete: SetNull)
+  verification     VendorVerification?
+  documents        VendorDocument[]
+  products         Product[]
+  marketVendors    MarketVendor[]
+  orderItems       OrderItem[]
+  vendorOrders     VendorOrder[]
+  payouts          Payout[]
+  openingHours     VendorOpeningHour[]
+
+  @@index([status, verified])
+  @@index([rating])
+  @@map("vendors")
+}
+
+model VendorVerification {
+  id           String             @id @default(uuid()) @db.Uuid
+  vendorId     String             @unique @db.Uuid
+  status       VerificationStatus @default(EN_ATTENTE)
+  submittedAt  DateTime?
+  reviewedAt   DateTime?
+  reviewedById String?            @db.Uuid
+  rejectionReason String?
+  notes        String?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  @@map("vendor_verifications")
+}
+
+model VendorDocument {
+  id          String             @id @default(uuid()) @db.Uuid
+  vendorId    String             @db.Uuid
+  type        String
+  /// Chemin dans le bucket privé Supabase Storage (jamais une URL publique).
+  storagePath String
+  fileName    String
+  mimeType    String
+  status      VerificationStatus @default(EN_ATTENTE)
+  expiresAt   DateTime?
+  createdAt   DateTime           @default(now())
+
+  vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  @@index([vendorId])
+  @@map("vendor_documents")
+}
+
+model VendorOpeningHour {
+  id        String @id @default(uuid()) @db.Uuid
+  vendorId  String @db.Uuid
+  dayOfWeek Int
+  startTime String
+  endTime   String
+
+  vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  @@unique([vendorId, dayOfWeek, startTime])
+  @@map("vendor_opening_hours")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LIVREURS
+// ═══════════════════════════════════════════════════════════════════════════
+
+model Courier {
+  id                  String              @id @default(uuid()) @db.Uuid
+  userId              String              @unique @db.Uuid
+  vehicleType         VehicleType         @default(VELO)
+  ibanEncrypted       String?
+  ibanLast4           String?
+  /// Numéro de registre national chiffré (vérification d'identité).
+  nationalIdEncrypted String?
+  verified            Boolean             @default(false)
+  status              AccountStatus       @default(EN_ATTENTE)
+  verificationStatus  VerificationStatus  @default(NON_SOUMIS)
+  rating              Float               @default(5)
+  ratingCount         Int                 @default(0)
+  /// Rayon maximal accepté autour d'un marché, en kilomètres.
+  radiusKm            Float               @default(8)
+  online              Boolean             @default(false)
+  currentLatitude     Float?
+  currentLongitude    Float?
+  currentLocation     Unsupported("geography(Point, 4326)")?
+  lastLocationUpdate  DateTime?
+  /// Zone préférée (centre) : le livreur ne reçoit que les missions proches.
+  preferredLatitude   Float?
+  preferredLongitude  Float?
+  preferredLocation   Unsupported("geography(Point, 4326)")?
+  stripeAccountId     String?             @unique
+  stripeAccountStatus StripeAccountStatus @default(NON_CREE)
+  acceptedTermsAt     DateTime?
+  /// Compteurs utilisés par l'algorithme d'assignation.
+  totalDeliveries     Int                 @default(0)
+  acceptedOffers      Int                 @default(0)
+  receivedOffers      Int                 @default(0)
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verification   CourierVerification?
+  documents      CourierDocument[]
+  vehicles       Vehicle[]
+  deliveries     Delivery[]
+  offers         DeliveryOffer[]
+  shifts         CourierShift[]
+  locationPings  CourierLocationPing[]
+  payouts        Payout[]
+  earnings       CourierEarning[]
+
+  @@index([online, status])
+  @@index([verified])
+  @@map("couriers")
+}
+
+model CourierVerification {
+  id              String             @id @default(uuid()) @db.Uuid
+  courierId       String             @unique @db.Uuid
+  status          VerificationStatus @default(EN_ATTENTE)
+  submittedAt     DateTime?
+  reviewedAt      DateTime?
+  reviewedById    String?            @db.Uuid
+  rejectionReason String?
+  notes           String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  courier Courier @relation(fields: [courierId], references: [id], onDelete: Cascade)
+
+  @@map("courier_verifications")
+}
+
+model CourierDocument {
+  id          String             @id @default(uuid()) @db.Uuid
+  courierId   String             @db.Uuid
+  type        String
+  storagePath String
+  fileName    String
+  mimeType    String
+  status      VerificationStatus @default(EN_ATTENTE)
+  expiresAt   DateTime?
+  createdAt   DateTime           @default(now())
+
+  courier Courier @relation(fields: [courierId], references: [id], onDelete: Cascade)
+
+  @@index([courierId])
+  @@map("courier_documents")
+}
+
+model Vehicle {
+  id          String      @id @default(uuid()) @db.Uuid
+  courierId   String      @db.Uuid
+  type        VehicleType
+  model       String?
+  plateNumber String?
+  isPrimary   Boolean     @default(true)
+  /// Capacité de transport en litres, utilisée pour filtrer les grosses commandes.
+  capacityLiters Int      @default(40)
+  createdAt   DateTime    @default(now())
+
+  courier Courier @relation(fields: [courierId], references: [id], onDelete: Cascade)
+
+  @@index([courierId])
+  @@map("vehicles")
+}
+
+/// Historique des sessions « en ligne » : sert au calcul du relevé hebdomadaire.
+model CourierShift {
+  id        String    @id @default(uuid()) @db.Uuid
+  courierId String    @db.Uuid
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
+
+  courier Courier @relation(fields: [courierId], references: [id], onDelete: Cascade)
+
+  @@index([courierId, startedAt])
+  @@map("courier_shifts")
+}
+
+/// Trace de position (conservée 24 h puis purgée — voir `scripts/purge.ts`).
+model CourierLocationPing {
+  id         String   @id @default(uuid()) @db.Uuid
+  courierId  String   @db.Uuid
+  deliveryId String?  @db.Uuid
+  latitude   Float
+  longitude  Float
+  location   Unsupported("geography(Point, 4326)")?
+  accuracy   Float?
+  heading    Float?
+  speed      Float?
+  recordedAt DateTime @default(now())
+
+  courier  Courier   @relation(fields: [courierId], references: [id], onDelete: Cascade)
+  delivery Delivery? @relation(fields: [deliveryId], references: [id], onDelete: SetNull)
+
+  @@index([courierId, recordedAt])
+  @@index([deliveryId, recordedAt])
+  @@map("courier_location_pings")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MARCHÉS
+// ═══════════════════════════════════════════════════════════════════════════
+
+model Market {
+  id            String       @id @default(uuid()) @db.Uuid
+  name          String
+  slug          String       @unique
+  description   String?
+  street        String
+  houseNumber   String?
+  city          String
+  postalCode    String
+  country       String       @default("BE")
+  latitude      Float
+  longitude     Float
+  location      Unsupported("geography(Point, 4326)")?
+  status        MarketStatus @default(FERME)
+  /// Rayon de livraison autorisé autour du marché, en kilomètres.
+  zoneRadiusKm  Float        @default(6)
+  imageUrl      String?
+  /// Plan du marché (image ou GeoJSON des emplacements).
+  mapUrl        String?
+  mapGeoJson    Json?
+  /// Forçage manuel par l'admin : si `true`, `status` n'est plus recalculé.
+  statusLocked  Boolean      @default(false)
+  timezone      String       @default("Europe/Brussels")
+  isActive      Boolean      @default(true)
+  /// alimentaire | bio | brocante | fleurs | artisanat | poisson | mixte
+  kind          String       @default("mixte")
+  region        String       @default("Bruxelles-Capitale")
+  featured      Boolean      @default(false)
+  stallCount    Int?
+  highlights    String[]     @default([])
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  schedules     MarketSchedule[]
+  closures      MarketClosure[]
+  marketVendors MarketVendor[]
+  availabilities MarketProductAvailability[]
+  orders        Order[]
+  carts         Cart[]
+
+  @@index([status, isActive])
+  @@index([postalCode])
+  @@index([region])
+  @@index([kind])
+  @@map("markets")
+}
+
+/// Horaire récurrent (dayOfWeek 0=dimanche) ou date spécifique (`dateSpecific`).
+model MarketSchedule {
+  id           String    @id @default(uuid()) @db.Uuid
+  marketId     String    @db.Uuid
+  dayOfWeek    Int?
+  dateSpecific DateTime? @db.Date
+  startTime    String
+  endTime      String
+  /// Heure limite de prise de commande (les livraisons doivent tenir dans le créneau).
+  lastOrderTime String?
+  isActive     Boolean   @default(true)
+
+  market Market @relation(fields: [marketId], references: [id], onDelete: Cascade)
+
+  @@unique([marketId, dayOfWeek, dateSpecific, startTime])
+  @@index([marketId])
+  @@map("market_schedules")
+}
+
+/// Fermeture exceptionnelle (jour férié, intempéries, travaux).
+model MarketClosure {
+  id       String   @id @default(uuid()) @db.Uuid
+  marketId String   @db.Uuid
+  date     DateTime @db.Date
+  reason   String?
+
+  market Market @relation(fields: [marketId], references: [id], onDelete: Cascade)
+
+  @@unique([marketId, date])
+  @@map("market_closures")
+}
+
+model MarketVendor {
+  id          String   @id @default(uuid()) @db.Uuid
+  marketId    String   @db.Uuid
+  vendorId    String   @db.Uuid
+  stallNumber String?
+  /// Présence par défaut aux dates d'ouverture du marché.
+  isPresent   Boolean  @default(true)
+  /// Jours de présence (0=dimanche). Vide = tous les jours d'ouverture.
+  presentDays Int[]    @default([])
+  approvedAt  DateTime?
+  createdAt   DateTime @default(now())
+
+  market Market @relation(fields: [marketId], references: [id], onDelete: Cascade)
+  vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  @@unique([marketId, vendorId])
+  @@index([vendorId])
+  @@map("market_vendors")
+}
+
+model BelgianHoliday {
+  id     String   @id @default(uuid()) @db.Uuid
+  date   DateTime @unique @db.Date
+  nameFr String
+  nameNl String
+  nameDe String
+  nameEn String
+
+  @@map("belgian_holidays")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CATALOGUE
+// ═══════════════════════════════════════════════════════════════════════════
+
+model Category {
+  id       String  @id @default(uuid()) @db.Uuid
+  slug     String  @unique
+  nameFr   String
+  nameNl   String
+  nameDe   String
+  nameEn   String
+  icon     String
+  color    String  @default("#529a3c")
+  /// Taux de TVA belge applicable par défaut, en bps (600 = 6 %).
+  vatRateBps Int   @default(600)
+  sortOrder Int    @default(0)
+  isActive Boolean @default(true)
+
+  products Product[]
+  vendors  Vendor[]
+
+  @@map("categories")
+}
+
+model Product {
+  id           String        @id @default(uuid()) @db.Uuid
+  vendorId     String        @db.Uuid
+  categoryId   String        @db.Uuid
+  name         String
+  slug         String
+  description  String?
+  /// Prix unitaire TTC en centimes.
+  priceCents   Int
+  /// Prix barré (promotion) en centimes.
+  compareAtPriceCents Int?
+  unit         ProductUnit   @default(PIECE)
+  /// Quantité par unité de vente (ex. 0.5 pour une barquette de 500 g).
+  unitQuantity Float         @default(1)
+  /// TVA en bps ; hérité de la catégorie si `null`.
+  vatRateBps   Int?
+  stock        Int           @default(0)
+  /// Quantité maximale commandable par client et par commande.
+  maxPerOrder  Int           @default(20)
+  images       String[]      @default([])
+  labels       ProductLabel[] @default([])
+  origin       String?
+  allergens    String[]      @default([])
+  isAvailable  Boolean       @default(true)
+  /// Validation admin du produit avant publication.
+  isApproved   Boolean       @default(true)
+  soldCount    Int           @default(0)
+  rating       Float         @default(0)
+  ratingCount  Int           @default(0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  vendor         Vendor                      @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  category       Category                    @relation(fields: [categoryId], references: [id])
+  availabilities MarketProductAvailability[]
+  orderItems     OrderItem[]
+  cartItems      CartItem[]
+  reviews        Review[]
+
+  @@unique([vendorId, slug])
+  @@index([vendorId, isAvailable])
+  @@index([categoryId])
+  @@map("products")
+}
+
+/// Stock et prix propres à un marché et, optionnellement, à une date précise.
+model MarketProductAvailability {
+  id            String    @id @default(uuid()) @db.Uuid
+  marketId      String    @db.Uuid
+  productId     String    @db.Uuid
+  date          DateTime? @db.Date
+  stock         Int       @default(0)
+  priceOverrideCents Int?
+  isAvailable   Boolean   @default(true)
+  updatedAt     DateTime  @updatedAt
+
+  market  Market  @relation(fields: [marketId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([marketId, productId, date])
+  @@index([marketId, isAvailable])
+  @@map("market_product_availabilities")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PANIER
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Un panier est lié à un marché et une date : on ne mélange pas deux marchés.
+model Cart {
+  id           String    @id @default(uuid()) @db.Uuid
+  userId       String?   @db.Uuid
+  /// Panier anonyme avant connexion (cookie `mg_cart`).
+  sessionToken String?   @unique
+  marketId     String    @db.Uuid
+  marketDate   DateTime  @db.Date
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  expiresAt    DateTime
+
+  user   User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  market Market     @relation(fields: [marketId], references: [id], onDelete: Cascade)
+  items  CartItem[]
+
+  @@unique([userId, marketId, marketDate])
+  @@index([expiresAt])
+  @@map("carts")
+}
+
+model CartItem {
+  id         String   @id @default(uuid()) @db.Uuid
+  cartId     String   @db.Uuid
+  productId  String   @db.Uuid
+  quantity   Int
+  /// Prix figé au moment de l'ajout, revalidé au checkout.
+  unitPriceCents Int
+  note       String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, productId])
+  @@index([cartId])
+  @@map("cart_items")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// COMMANDES
+// ═══════════════════════════════════════════════════════════════════════════
+
+model Order {
+  id            String        @id @default(uuid()) @db.Uuid
+  /// Référence lisible (ex. MG-2K5F7Q) communiquée au client et aux vendeurs.
+  reference     String        @unique
+  clientId      String        @db.Uuid
+  marketId      String        @db.Uuid
+  marketDate    DateTime      @db.Date
+  status        OrderStatus   @default(EN_ATTENTE)
+  paymentStatus PaymentStatus @default(EN_ATTENTE)
+
+  // ── Montants (centimes) ──────────────────────────────────────────────────
+  subtotalCents      Int
+  deliveryFeeCents   Int
+  serviceFeeCents    Int
+  tipCents           Int @default(0)
+  discountCents      Int @default(0)
+  /// TVA totale incluse dans `totalCents` (les prix affichés sont TTC).
+  vatTotalCents      Int
+  totalCents         Int
+  /// Part reversée aux vendeurs après commission.
+  vendorPayoutCents  Int @default(0)
+  /// Rémunération du livreur (base + km + primes + pourboire).
+  courierPayoutCents Int @default(0)
+  /// Revenu net plateforme (commission + frais de service - subventions).
+  platformFeeCents   Int @default(0)
+  /// Multiplicateur de tarification dynamique appliqué (100 = x1.00).
+  surgeMultiplierBps Int @default(10000)
+
+  // ── Livraison ────────────────────────────────────────────────────────────
+  deliveryAddressId  String?          @db.Uuid
+  /// Copie figée de l'adresse au moment de la commande (RGPD + historique).
+  deliveryAddressSnapshot Json
+  deliveryLatitude   Float
+  deliveryLongitude  Float
+  deliveryLocation   Unsupported("geography(Point, 4326)")?
+  deliveryDistanceKm Float
+  slotType           DeliverySlotType @default(ASAP)
+  scheduledFor       DateTime?
+  estimatedDeliveryAt DateTime?
+  deliveredAt        DateTime?
+  customerNote       String?
+
+  // ── Annulation ───────────────────────────────────────────────────────────
+  cancelledAt        DateTime?
+  cancelledBy        String?
+  cancellationReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  client          User                 @relation("ClientOrders", fields: [clientId], references: [id])
+  market          Market               @relation(fields: [marketId], references: [id])
+  deliveryAddress Address?             @relation(fields: [deliveryAddressId], references: [id], onDelete: SetNull)
+  items           OrderItem[]
+  vendorOrders    VendorOrder[]
+  statusHistory   OrderStatusHistory[]
+  delivery        Delivery?
+  payment         Payment?
+  reviews         Review[]
+  disputes        Dispute[]
+  conversations   Conversation[]
+  invoices        Invoice[]
+
+  @@index([clientId, createdAt])
+  @@index([marketId, marketDate])
+  @@index([status])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+/// Regroupement des lignes d'une commande par vendeur : chaque vendeur gère
+/// son propre cycle (accepter → préparer → prête → récupérée) et reçoit sa part.
+model VendorOrder {
+  id          String            @id @default(uuid()) @db.Uuid
+  orderId     String            @db.Uuid
+  vendorId    String            @db.Uuid
+  status      VendorOrderStatus @default(EN_ATTENTE)
+  subtotalCents Int
+  commissionBps Int
+  commissionCents Int
+  payoutCents Int
+  stallNumber String?
+  /// Code à 4 chiffres remis au livreur pour confirmer la récupération.
+  pickupCode  String
+  acceptedAt  DateTime?
+  readyAt     DateTime?
+  pickedUpAt  DateTime?
+  refusedAt   DateTime?
+  refusalReason String?
+  prepNote    String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  order  Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  vendor Vendor      @relation(fields: [vendorId], references: [id])
+  items  OrderItem[]
+  payouts Payout[]
+
+  @@unique([orderId, vendorId])
+  @@index([vendorId, status])
+  @@map("vendor_orders")
+}
+
+model OrderItem {
+  id             String  @id @default(uuid()) @db.Uuid
+  orderId        String  @db.Uuid
+  vendorOrderId  String  @db.Uuid
+  vendorId       String  @db.Uuid
+  productId      String? @db.Uuid
+  /// Copie figée du produit (le produit peut être supprimé ensuite).
+  productName    String
+  productUnit    ProductUnit
+  productImage   String?
+  quantity       Int
+  unitPriceCents Int
+  vatRateBps     Int
+  vatCents       Int
+  totalCents     Int
+  note           String?
+  /// Renseigné par le vendeur si l'article est finalement indisponible.
+  isRefunded     Boolean @default(false)
+  refundedCents  Int     @default(0)
+
+  order       Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  vendorOrder VendorOrder @relation(fields: [vendorOrderId], references: [id], onDelete: Cascade)
+  vendor      Vendor      @relation(fields: [vendorId], references: [id])
+  product     Product?    @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@index([vendorOrderId])
+  @@map("order_items")
+}
+
+model OrderStatusHistory {
+  id        String      @id @default(uuid()) @db.Uuid
+  orderId   String      @db.Uuid
+  status    OrderStatus
+  note      String?
+  authorId  String?     @db.Uuid
+  authorRole UserRole?
+  createdAt DateTime    @default(now())
+
+  order  Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  author User? @relation("StatusAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([orderId, createdAt])
+  @@map("order_status_history")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LIVRAISONS & ASSIGNATION
+// ═══════════════════════════════════════════════════════════════════════════
+
+model Delivery {
+  id         String         @id @default(uuid()) @db.Uuid
+  orderId    String         @unique @db.Uuid
+  courierId  String?        @db.Uuid
+  status     DeliveryStatus @default(NON_ASSIGNEE)
+
+  pickupLatitude   Float
+  pickupLongitude  Float
+  pickupLocation   Unsupported("geography(Point, 4326)")?
+  dropoffLatitude  Float
+  dropoffLongitude Float
+  dropoffLocation  Unsupported("geography(Point, 4326)")?
+  distanceKm       Float
+
+  /// Rayon courant de recherche : élargi à chaque vague d'assignation.
+  searchRadiusKm   Float    @default(3)
+  searchWave       Int      @default(0)
+  searchStartedAt  DateTime?
+
+  assignedAt   DateTime?
+  arrivedAtMarketAt DateTime?
+  pickedAt     DateTime?
+  deliveredAt  DateTime?
+  failedAt     DateTime?
+  failureReason String?
+
+  /// Preuve de livraison
+  proofType    ProofType?
+  proofPhotoUrl String?
+  proofSignatureUrl String?
+  /// Hash du code PIN remis au client (jamais le PIN en clair).
+  pinCodeHash  String?
+  pinAttempts  Int       @default(0)
+
+  /// Rémunération détaillée
+  baseFeeCents     Int @default(0)
+  distanceFeeCents Int @default(0)
+  bonusCents       Int @default(0)
+  tipCents         Int @default(0)
+  totalEarningCents Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  order    Order                 @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  courier  Courier?              @relation(fields: [courierId], references: [id], onDelete: SetNull)
+  offers   DeliveryOffer[]
+  pings    CourierLocationPing[]
+  earnings CourierEarning[]
+
+  @@index([courierId, status])
+  @@index([status, searchStartedAt])
+  @@map("deliveries")
+}
+
+/// Proposition de mission envoyée à un livreur ; expire après ~30 secondes.
+model DeliveryOffer {
+  id         String              @id @default(uuid()) @db.Uuid
+  deliveryId String              @db.Uuid
+  courierId  String              @db.Uuid
+  status     DeliveryOfferStatus @default(ENVOYEE)
+  wave       Int                 @default(0)
+  /// Score de classement calculé par l'algorithme (plus haut = meilleur).
+  score      Float               @default(0)
+  distanceToMarketKm Float
+  estimatedEarningCents Int
+  expiresAt  DateTime
+  respondedAt DateTime?
+  refusalReason String?
+  createdAt  DateTime            @default(now())
+
+  delivery Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  courier  Courier  @relation(fields: [courierId], references: [id], onDelete: Cascade)
+
+  @@unique([deliveryId, courierId, wave])
+  @@index([courierId, status])
+  @@index([status, expiresAt])
+  @@map("delivery_offers")
+}
+
+/// Ligne de gain d'un livreur (base, km, bonus, pourboire, ajustement).
+model CourierEarning {
+  id         String   @id @default(uuid()) @db.Uuid
+  courierId  String   @db.Uuid
+  deliveryId String?  @db.Uuid
+  type       String
+  amountCents Int
+  description String?
+  payoutId   String?  @db.Uuid
+  earnedAt   DateTime @default(now())
+
+  courier  Courier   @relation(fields: [courierId], references: [id], onDelete: Cascade)
+  delivery Delivery? @relation(fields: [deliveryId], references: [id], onDelete: SetNull)
+  payout   Payout?   @relation(fields: [payoutId], references: [id], onDelete: SetNull)
+
+  @@index([courierId, earnedAt])
+  @@map("courier_earnings")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PAIEMENTS
+// ═══════════════════════════════════════════════════════════════════════════
+
+model Payment {
+  id                    String        @id @default(uuid()) @db.Uuid
+  orderId               String        @unique @db.Uuid
+  stripePaymentIntentId String?       @unique
+  stripeChargeId        String?
+  stripeCustomerId      String?
+  amountCents           Int
+  currency              String        @default("eur")
+  status                PaymentStatus @default(EN_ATTENTE)
+  paymentMethodType     String?
+  refundedCents         Int           @default(0)
+  /// Empreinte du dernier événement Stripe traité (idempotence).
+  lastEventId           String?
+  failureMessage        String?
+  paidAt                DateTime?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  refunds Refund[]
+
+  @@index([status])
+  @@map("payments")
+}
+
+model Refund {
+  id             String   @id @default(uuid()) @db.Uuid
+  paymentId      String   @db.Uuid
+  stripeRefundId String?  @unique
+  amountCents    Int
+  reason         String
+  initiatedById  String?  @db.Uuid
+  disputeId      String?  @db.Uuid
+  status         String   @default("EN_ATTENTE")
+  createdAt      DateTime @default(now())
+
+  payment Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  dispute Dispute? @relation(fields: [disputeId], references: [id], onDelete: SetNull)
+
+  @@index([paymentId])
+  @@map("refunds")
+}
+
+model Payout {
+  id             String            @id @default(uuid()) @db.Uuid
+  beneficiary    PayoutBeneficiary
+  vendorId       String?           @db.Uuid
+  courierId      String?           @db.Uuid
+  vendorOrderId  String?           @db.Uuid
+  amountCents    Int
+  currency       String            @default("eur")
+  status         PayoutStatus      @default(PROGRAMME)
+  stripeTransferId String?         @unique
+  periodStart    DateTime
+  periodEnd      DateTime
+  scheduledFor   DateTime
+  paidAt         DateTime?
+  failureMessage String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  vendor      Vendor?          @relation(fields: [vendorId], references: [id], onDelete: SetNull)
+  courier     Courier?         @relation(fields: [courierId], references: [id], onDelete: SetNull)
+  vendorOrder VendorOrder?     @relation(fields: [vendorOrderId], references: [id], onDelete: SetNull)
+  earnings    CourierEarning[]
+  invoices    Invoice[]
+
+  @@index([status, scheduledFor])
+  @@index([vendorId])
+  @@index([courierId])
+  @@map("payouts")
+}
+
+/// Facture conforme (mentions légales belges) : commande client ou relevé
+/// d'auto-facturation vendeur/livreur.
+model Invoice {
+  id          String   @id @default(uuid()) @db.Uuid
+  number      String   @unique
+  type        String
+  orderId     String?  @db.Uuid
+  payoutId    String?  @db.Uuid
+  recipientName String
+  recipientVat  String?
+  recipientAddress Json
+  /// Lignes : { label, quantity, unitPriceCents, vatRateBps, totalCents }
+  lines       Json
+  subtotalCents Int
+  vatCents    Int
+  totalCents  Int
+  issuedAt    DateTime @default(now())
+  pdfUrl      String?
+
+  order  Order?  @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  payout Payout? @relation(fields: [payoutId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@map("invoices")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AVIS, LITIGES, MESSAGERIE, NOTIFICATIONS
+// ═══════════════════════════════════════════════════════════════════════════
+
+model Review {
+  id         String           @id @default(uuid()) @db.Uuid
+  orderId    String           @db.Uuid
+  authorId   String           @db.Uuid
+  /// Identifiant de la cible : vendorId, courierId ou productId.
+  targetId   String           @db.Uuid
+  targetRole ReviewTargetRole
+  productId  String?          @db.Uuid
+  rating     Int
+  comment    String?
+  /// Modération : masqué si signalé et confirmé par l'admin.
+  isHidden   Boolean          @default(false)
+  createdAt  DateTime         @default(now())
+
+  order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  author  User     @relation("ReviewAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@unique([orderId, authorId, targetId, targetRole])
+  @@index([targetId, targetRole])
+  @@map("reviews")
+}
+
+model Dispute {
+  id           String        @id @default(uuid()) @db.Uuid
+  reference    String        @unique
+  orderId      String        @db.Uuid
+  openedById   String        @db.Uuid
+  reason       DisputeReason
+  description  String
+  /// Chemins Supabase Storage des photos justificatives.
+  attachments  String[]      @default([])
+  /// Lignes de commande concernées (ids d'OrderItem).
+  affectedItemIds String[]   @default([])
+  status       DisputeStatus @default(OUVERT)
+  requestedRefundCents Int?
+  resolution   String?
+  refundedCents Int          @default(0)
+  resolvedById String?       @db.Uuid
+  resolvedAt   DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  order      Order            @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  openedBy   User             @relation("DisputeOpener", fields: [openedById], references: [id])
+  resolvedBy User?            @relation("DisputeResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+  messages   DisputeMessage[]
+  refunds    Refund[]
+
+  @@index([status, createdAt])
+  @@index([orderId])
+  @@map("disputes")
+}
+
+model DisputeMessage {
+  id          String   @id @default(uuid()) @db.Uuid
+  disputeId   String   @db.Uuid
+  authorId    String   @db.Uuid
+  content     String
+  attachments String[] @default([])
+  isInternal  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  dispute Dispute @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  author  User    @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([disputeId, createdAt])
+  @@map("dispute_messages")
+}
+
+model Conversation {
+  id        String           @id @default(uuid()) @db.Uuid
+  orderId   String?          @db.Uuid
+  type      ConversationType
+  /// Fermée automatiquement 24 h après la livraison.
+  closedAt  DateTime?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  order        Order?                    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  participants ConversationParticipant[]
+  messages     ChatMessage[]
+
+  @@index([orderId])
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id             String    @id @default(uuid()) @db.Uuid
+  conversationId String    @db.Uuid
+  userId         String    @db.Uuid
+  role           UserRole
+  lastReadAt     DateTime?
+  joinedAt       DateTime  @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+  @@map("conversation_participants")
+}
+
+model ChatMessage {
+  id             String   @id @default(uuid()) @db.Uuid
+  conversationId String   @db.Uuid
+  senderId       String   @db.Uuid
+  content        String
+  attachments    String[] @default([])
+  readAt         DateTime?
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@map("chat_messages")
+}
+
+model Notification {
+  id        String              @id @default(uuid()) @db.Uuid
+  userId    String              @db.Uuid
+  type      NotificationType
+  channels  NotificationChannel[] @default([IN_APP])
+  title     String
+  body      String
+  data      Json                @default("{}")
+  /// Lien profond ouvert au clic (ex. /commandes/MG-XXXX).
+  actionUrl String?
+  readAt    DateTime?
+  sentAt    DateTime?
+  createdAt DateTime            @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model PushSubscription {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  provider  String   @default("webpush")
+  /// Endpoint Web Push, player_id OneSignal ou token FCM.
+  token     String
+  platform  String?
+  userAgent String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, token])
+  @@index([userId, isActive])
+  @@map("push_subscriptions")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ADMINISTRATION
+// ═══════════════════════════════════════════════════════════════════════════
+
+model AuditLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  adminId   String?  @db.Uuid
+  action    String
+  targetType String
+  targetId  String?
+  metadata  Json     @default("{}")
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  admin User? @relation("AuditActor", fields: [adminId], references: [id], onDelete: SetNull)
+
+  @@index([adminId, createdAt])
+  @@index([targetType, targetId])
+  @@map("audit_logs")
+}
+
+/// Configuration financière et opérationnelle. Une seule ligne active
+/// (`id = "global"`), versionnée par `updatedAt` et tracée dans `AuditLog`.
+model PlatformSettings {
+  id String @id @default("global")
+
+  serviceFeeCents        Int   @default(199)
+  /// Frais de service en % du sous-total, cumulés au forfait (0 = désactivé).
+  serviceFeeBps          Int   @default(0)
+  serviceFeeCapCents     Int   @default(500)
+  vendorCommissionBps    Int   @default(1500)
+  minOrderCents          Int   @default(1500)
+  /// Frais de livraison
+  deliveryBaseFeeCents   Int   @default(290)
+  deliveryPerKmCents     Int   @default(80)
+  deliveryFreeAboveCents Int?
+  deliveryMaxKm          Float @default(15)
+  /// Rémunération livreur
+  courierBaseFeeCents    Int   @default(350)
+  courierPerKmCents      Int   @default(90)
+  courierPerVendorCents  Int   @default(50)
+  courierMinEarningCents Int   @default(450)
+  /// Tarification dynamique (bps ; 10000 = x1.00)
+  surgeEnabled           Boolean @default(true)
+  surgeMaxBps            Int   @default(20000)
+  rainBonusCents         Int   @default(100)
+  highDemandBonusCents   Int   @default(150)
+  /// TVA belge en bps
+  vatFoodBps             Int   @default(600)
+  vatServiceBps          Int   @default(2100)
+  /// Assignation
+  offerTimeoutSeconds    Int   @default(30)
+  initialSearchRadiusKm  Float @default(3)
+  radiusIncrementKm      Float @default(2)
+  maxSearchRadiusKm      Float @default(12)
+  maxSearchWaves         Int   @default(5)
+  offersPerWave          Int   @default(3)
+  scheduledAssignLeadMinutes Int @default(30)
+  /// Annulation
+  freeCancellationSeconds Int  @default(120)
+  cancellationFeeCents   Int   @default(200)
+
+  updatedAt   DateTime @updatedAt
+  updatedById String?  @db.Uuid
+
+  @@map("platform_settings")
+}
+
+/// Idempotence des webhooks entrants (Stripe et autres).
+model WebhookEvent {
+  id          String   @id
+  provider    String
+  type        String
+  payload     Json
+  processedAt DateTime?
+  error       String?
+  createdAt   DateTime @default(now())
+
+  @@index([provider, type])
+  @@map("webhook_events")
+}

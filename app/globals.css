@@ -1,0 +1,146 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 43 38% 97%;
+    --foreground: 155 22% 14%;
+    --card: 42 45% 99%;
+    --card-foreground: 155 22% 14%;
+    --popover: 42 45% 99%;
+    --popover-foreground: 155 22% 14%;
+    --primary: 142 38% 32%;
+    --primary-foreground: 43 50% 97%;
+    --secondary: 34 55% 94%;
+    --secondary-foreground: 24 55% 22%;
+    --muted: 40 18% 93%;
+    --muted-foreground: 155 8% 42%;
+    --accent: 22 78% 48%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 46% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 24 80% 16%;
+    --border: 38 16% 88%;
+    --input: 38 16% 88%;
+    --ring: 142 38% 32%;
+    --radius: 1rem;
+  }
+
+  .dark {
+    --background: 155 18% 7%;
+    --foreground: 43 30% 94%;
+    --card: 155 14% 10%;
+    --card-foreground: 43 30% 94%;
+    --popover: 155 14% 10%;
+    --popover-foreground: 43 30% 94%;
+    --primary: 142 35% 44%;
+    --primary-foreground: 155 20% 8%;
+    --secondary: 24 35% 14%;
+    --secondary-foreground: 32 90% 90%;
+    --muted: 155 10% 15%;
+    --muted-foreground: 40 12% 68%;
+    --accent: 22 75% 52%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62% 46%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 40% 40%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 80% 48%;
+    --warning-foreground: 40 90% 10%;
+    --border: 155 10% 18%;
+    --input: 155 10% 18%;
+    --ring: 142 35% 44%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, hsl(142 38% 32% / 0.06), transparent),
+      radial-gradient(ellipse 60% 40% at 100% 0%, hsl(22 78% 48% / 0.04), transparent);
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  ::selection {
+    @apply bg-primary/20 text-foreground;
+  }
+}
+
+@layer components {
+  .surface-card {
+    @apply rounded-2xl border border-border/80 bg-card/90 shadow-soft backdrop-blur-sm;
+  }
+
+  .surface-elevated {
+    @apply rounded-3xl border border-border/60 bg-card shadow-lifted;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .label-caps {
+    @apply text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground;
+  }
+
+  .hero-title {
+    @apply font-display text-balance text-4xl font-semibold leading-[1.08] tracking-tight md:text-5xl lg:text-[3.25rem];
+  }
+
+  .section-title {
+    @apply font-display text-2xl font-semibold tracking-tight md:text-3xl;
+  }
+
+  .grain {
+    position: relative;
+  }
+
+  .grain::after {
+    content: '';
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .ticket {
+    @apply inline-flex items-center rounded-sm border border-white/10 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] shadow-sm;
+  }
+
+  .paper-sheet {
+    @apply rounded-[1.75rem] border border-border/70 bg-card shadow-soft;
+    background-image:
+      linear-gradient(180deg, hsl(42 45% 99% / 0.9), hsl(42 40% 97% / 0.95));
+  }
+}
+
+@layer utilities {
+  .safe-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

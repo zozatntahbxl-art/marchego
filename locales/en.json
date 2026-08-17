@@ -1,0 +1,97 @@
+{
+  "app": {
+    "name": "MarchéGo",
+    "tagline": "Belgian markets, delivered to your door",
+    "nearby": "Markets around you"
+  },
+  "nav": {
+    "home": "Home",
+    "markets": "Markets",
+    "orders": "Orders",
+    "account": "Account",
+    "cart": "Cart",
+    "vendor": "Vendor hub",
+    "courier": "Courier hub",
+    "admin": "Admin"
+  },
+  "auth": {
+    "login": "Log in",
+    "register": "Create an account",
+    "logout": "Log out",
+    "email": "Email address",
+    "password": "Password",
+    "phone": "Phone number",
+    "role": "I am signing up as",
+    "client": "Customer",
+    "courier": "Courier",
+    "vendor": "Market vendor",
+    "forgot": "Forgot password?",
+    "or": "or",
+    "google": "Continue with Google",
+    "apple": "Continue with Apple",
+    "verifyPhone": "Verify my number"
+  },
+  "market": {
+    "open": "Open",
+    "closed": "Closed",
+    "paused": "Paused",
+    "opensAt": "Opens at {time}",
+    "closesAt": "Closes at {time}",
+    "distance": "{distance} away",
+    "vendors": "{count} vendors",
+    "deliveryZone": "Delivery within {km} km"
+  },
+  "cart": {
+    "title": "Your cart",
+    "empty": "Your cart is empty",
+    "subtotal": "Subtotal",
+    "delivery": "Delivery",
+    "service": "Service fee",
+    "tip": "Tip",
+    "total": "Total",
+    "minOrder": "Minimum order: {amount}",
+    "checkout": "Checkout",
+    "add": "Add"
+  },
+  "order": {
+    "placed": "Order confirmed",
+    "tracking": "Tracking",
+    "eta": "Estimated arrival",
+    "cancel": "Cancel order",
+    "help": "Need help?"
+  },
+  "courier": {
+    "online": "Online",
+    "offline": "Offline",
+    "newOffer": "New job",
+    "accept": "Accept",
+    "refuse": "Decline",
+    "earnings": "Earnings"
+  },
+  "vendor": {
+    "orders": "Orders",
+    "products": "Products",
+    "ready": "Mark ready",
+    "accept": "Accept"
+  },
+  "legal": {
+    "terms": "Terms of service",
+    "privacy": "Privacy",
+    "imprint": "Legal notice",
+    "cookies": "Cookies"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "loading": "Loading…",
+    "error": "Something went wrong",
+    "retry": "Try again",
+    "search": "Search",
+    "filters": "Filters",
+    "back": "Back",
+    "next": "Next",
+    "close": "Close",
+    "yes": "Yes",
+    "no": "No"
+  }
+}

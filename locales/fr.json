@@ -1,0 +1,97 @@
+{
+  "app": {
+    "name": "MarchéGo",
+    "tagline": "Les marchés belges, livrés chez vous",
+    "nearby": "Marchés autour de vous"
+  },
+  "nav": {
+    "home": "Accueil",
+    "markets": "Marchés",
+    "orders": "Commandes",
+    "account": "Compte",
+    "cart": "Panier",
+    "vendor": "Espace vendeur",
+    "courier": "Espace livreur",
+    "admin": "Administration"
+  },
+  "auth": {
+    "login": "Connexion",
+    "register": "Créer un compte",
+    "logout": "Déconnexion",
+    "email": "Adresse e-mail",
+    "password": "Mot de passe",
+    "phone": "Numéro de téléphone",
+    "role": "Je m'inscris en tant que",
+    "client": "Client",
+    "courier": "Livreur",
+    "vendor": "Vendeur de marché",
+    "forgot": "Mot de passe oublié ?",
+    "or": "ou",
+    "google": "Continuer avec Google",
+    "apple": "Continuer avec Apple",
+    "verifyPhone": "Vérifier mon numéro"
+  },
+  "market": {
+    "open": "Ouvert",
+    "closed": "Fermé",
+    "paused": "En pause",
+    "opensAt": "Ouvre à {time}",
+    "closesAt": "Ferme à {time}",
+    "distance": "à {distance}",
+    "vendors": "{count} vendeurs",
+    "deliveryZone": "Livraison dans un rayon de {km} km"
+  },
+  "cart": {
+    "title": "Votre panier",
+    "empty": "Votre panier est vide",
+    "subtotal": "Sous-total",
+    "delivery": "Livraison",
+    "service": "Frais de service",
+    "tip": "Pourboire",
+    "total": "Total",
+    "minOrder": "Minimum de commande : {amount}",
+    "checkout": "Commander",
+    "add": "Ajouter"
+  },
+  "order": {
+    "placed": "Commande confirmée",
+    "tracking": "Suivi",
+    "eta": "Arrivée estimée",
+    "cancel": "Annuler la commande",
+    "help": "Un problème ?"
+  },
+  "courier": {
+    "online": "En ligne",
+    "offline": "Hors ligne",
+    "newOffer": "Nouvelle course",
+    "accept": "Accepter",
+    "refuse": "Refuser",
+    "earnings": "Gains"
+  },
+  "vendor": {
+    "orders": "Commandes",
+    "products": "Produits",
+    "ready": "Marquer prête",
+    "accept": "Accepter"
+  },
+  "legal": {
+    "terms": "Conditions générales",
+    "privacy": "Confidentialité",
+    "imprint": "Mentions légales",
+    "cookies": "Cookies"
+  },
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "loading": "Chargement…",
+    "error": "Une erreur est survenue",
+    "retry": "Réessayer",
+    "search": "Rechercher",
+    "filters": "Filtres",
+    "back": "Retour",
+    "next": "Suivant",
+    "close": "Fermer",
+    "yes": "Oui",
+    "no": "Non"
+  }
+}

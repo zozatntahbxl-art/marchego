@@ -1,0 +1,97 @@
+{
+  "app": {
+    "name": "MarchéGo",
+    "tagline": "Belgische Märkte, zu Ihnen geliefert",
+    "nearby": "Märkte in Ihrer Nähe"
+  },
+  "nav": {
+    "home": "Start",
+    "markets": "Märkte",
+    "orders": "Bestellungen",
+    "account": "Konto",
+    "cart": "Warenkorb",
+    "vendor": "Verkäuferbereich",
+    "courier": "Fahrerbereich",
+    "admin": "Verwaltung"
+  },
+  "auth": {
+    "login": "Anmelden",
+    "register": "Konto erstellen",
+    "logout": "Abmelden",
+    "email": "E-Mail-Adresse",
+    "password": "Passwort",
+    "phone": "Telefonnummer",
+    "role": "Ich registriere mich als",
+    "client": "Kunde",
+    "courier": "Fahrer",
+    "vendor": "Marktverkäufer",
+    "forgot": "Passwort vergessen?",
+    "or": "oder",
+    "google": "Mit Google fortfahren",
+    "apple": "Mit Apple fortfahren",
+    "verifyPhone": "Meine Nummer bestätigen"
+  },
+  "market": {
+    "open": "Geöffnet",
+    "closed": "Geschlossen",
+    "paused": "Pausiert",
+    "opensAt": "Öffnet um {time}",
+    "closesAt": "Schließt um {time}",
+    "distance": "{distance} entfernt",
+    "vendors": "{count} Verkäufer",
+    "deliveryZone": "Lieferung im Umkreis von {km} km"
+  },
+  "cart": {
+    "title": "Ihr Warenkorb",
+    "empty": "Ihr Warenkorb ist leer",
+    "subtotal": "Zwischensumme",
+    "delivery": "Lieferung",
+    "service": "Servicegebühr",
+    "tip": "Trinkgeld",
+    "total": "Gesamt",
+    "minOrder": "Mindestbestellung: {amount}",
+    "checkout": "Bestellen",
+    "add": "Hinzufügen"
+  },
+  "order": {
+    "placed": "Bestellung bestätigt",
+    "tracking": "Sendungsverfolgung",
+    "eta": "Geschätzte Ankunft",
+    "cancel": "Bestellung stornieren",
+    "help": "Ein Problem?"
+  },
+  "courier": {
+    "online": "Online",
+    "offline": "Offline",
+    "newOffer": "Neue Fahrt",
+    "accept": "Annehmen",
+    "refuse": "Ablehnen",
+    "earnings": "Einnahmen"
+  },
+  "vendor": {
+    "orders": "Bestellungen",
+    "products": "Produkte",
+    "ready": "Als fertig markieren",
+    "accept": "Annehmen"
+  },
+  "legal": {
+    "terms": "AGB",
+    "privacy": "Datenschutz",
+    "imprint": "Impressum",
+    "cookies": "Cookies"
+  },
+  "common": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "loading": "Laden…",
+    "error": "Ein Fehler ist aufgetreten",
+    "retry": "Erneut versuchen",
+    "search": "Suchen",
+    "filters": "Filter",
+    "back": "Zurück",
+    "next": "Weiter",
+    "close": "Schließen",
+    "yes": "Ja",
+    "no": "Nein"
+  }
+}
