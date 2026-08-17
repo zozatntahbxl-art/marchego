@@ -53,7 +53,7 @@ export function SitePreFooter() {
             <Link
               key={ad.href}
               href={ad.href}
-              className={`group relative isolate min-h-[220px] overflow-hidden rounded-[1.75rem] ${
+              className={`group relative isolate min-h-[180px] overflow-hidden rounded-[1.5rem] sm:min-h-[220px] sm:rounded-[1.75rem] ${
                 i === 0 ? 'lg:min-h-[280px]' : ''
               }`}
             >
@@ -62,7 +62,7 @@ export function SitePreFooter() {
                 style={{ backgroundImage: `url(${ad.image})` }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-black/10" />
-              <div className="relative flex h-full flex-col justify-end p-6 text-white">
+              <div className="relative flex h-full flex-col justify-end p-5 text-white sm:p-6">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">{ad.kicker}</p>
                 <p className="mt-1 font-display text-2xl font-semibold leading-tight">{ad.title}</p>
                 <p className="mt-1 max-w-md text-sm text-white/80">{ad.text}</p>

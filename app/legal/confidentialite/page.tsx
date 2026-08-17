@@ -7,7 +7,7 @@ export default function PrivacyPage() {
         <p className="label-caps">RGPD</p>
         <h1 className="section-title">Politique de confidentialité</h1>
         <p>
-          MarchéGo, Bruxelles (développement : MAAYOUD.B), est responsable du traitement. Nous
+          MarchéGo, Bruxelles (conception : M. El Tawfik · développement : Billy .M), est responsable du traitement. Nous
           collectons l’e-mail, le téléphone, les adresses de livraison et, avec consentement
           explicite, la position GPS des livreurs pendant une mission. Les IBAN et documents
           d’identité sont chiffrés au repos (AES-256-GCM).

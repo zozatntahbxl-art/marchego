@@ -28,8 +28,8 @@ export const metadata: Metadata = {
   description:
     'Commandez vos courses au marché du dimanche et faites-vous livrer à domicile. Fruits, fromages, boulangerie — partout en Belgique.',
   applicationName: 'MarchéGo',
-  authors: [{ name: 'MAAYOUD.B' }],
-  creator: 'MAAYOUD.B',
+  authors: [{ name: 'M. El Tawfik' }, { name: 'Billy .M' }],
+  creator: 'Billy .M',
   publisher: 'MarchéGo',
   manifest: '/manifest.webmanifest',
   appleWebApp: {
@@ -54,7 +54,6 @@ export const viewport: Viewport = {
   ],
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
   viewportFit: 'cover',
 };
 
@@ -66,7 +65,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <QueryProvider>
             {children}
             <CookieBanner />
-            <Toaster richColors position="top-center" />
+            <Toaster richColors position="top-center" offset="max(12px, env(safe-area-inset-top))" />
           </QueryProvider>
         </ThemeProvider>
         <script

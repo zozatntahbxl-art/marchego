@@ -2,7 +2,7 @@
 
 Plateforme belge de livraison des courses de marchés. Un client compose son panier auprès des étals d’un marché, paie en une fois, et reçoit la livraison pendant le créneau d’ouverture. Les vendeurs préparent ; les livreurs collectent et remettent contre PIN.
 
-**Conception et développement : MAAYOUD.B**
+**Conception : M. El Tawfik · Développement : Billy .M**
 
 Stack : Next.js 14 (App Router), TypeScript, Tailwind CSS, Prisma, PostgreSQL / PostGIS, Supabase (auth, stockage), Stripe Connect, MapLibre.
 
@@ -149,4 +149,4 @@ npm test
 
 ## Licence
 
-Propriétaire. Conception et développement : **MAAYOUD.B**.
+Propriétaire. Conception : **M. El Tawfik**. Développement : **Billy .M**.

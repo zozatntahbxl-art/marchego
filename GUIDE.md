@@ -1,7 +1,7 @@
 # Tester MarchéGo
 
 Guide pour découvrir l’application **sans connaissances techniques**.  
-Conception et développement : **MAAYOUD.B**.
+Conception : **M. El Tawfik** · Développement : **Billy .M**.
 
 MarchéGo livre les courses des marchés belges : vous choisissez un marché, composez un panier chez plusieurs étals, payez, puis suivez la livraison.
 

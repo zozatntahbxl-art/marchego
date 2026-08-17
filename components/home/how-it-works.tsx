@@ -21,22 +21,22 @@ const STEPS = [
 
 export function HowItWorks() {
   return (
-    <section className="border-y bg-cream-50/60 py-14 md:py-16">
+    <section className="border-y bg-cream-50/60 py-10 md:py-16">
       <div className="container">
-        <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
+        <div className="mb-8 flex flex-wrap items-end justify-between gap-4 md:mb-10">
           <div>
             <p className="label-caps mb-2">Simple comme au marché</p>
             <h2 className="section-title">Trois gestes, c’est livré.</h2>
           </div>
-          <Link href="/marches" className="text-sm font-semibold text-primary hover:underline">
+          <Link href="/marches" className="inline-flex min-h-11 items-center text-sm font-semibold text-primary">
             Voir tous les marchés →
           </Link>
         </div>
-        <ol className="grid gap-6 md:grid-cols-3">
+        <ol className="grid gap-4 md:grid-cols-3 md:gap-6">
           {STEPS.map((step, i) => {
             const Icon = step.icon;
             return (
-              <li key={step.title} className="surface-card relative p-6">
+              <li key={step.title} className="surface-card relative p-5 sm:p-6">
                 <span className="absolute right-5 top-5 font-display text-4xl font-light text-muted-foreground/20">
                   {String(i + 1).padStart(2, '0')}
                 </span>

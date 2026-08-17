@@ -10,7 +10,9 @@ export default function ImprintPage() {
           MarchéGo · Siège : Rue du Marché 12, 1000 Bruxelles · contact@marchego.be
         </p>
         <p>
-          Conception et développement : <strong>MAAYOUD.B</strong>
+          Conception : <strong>M. El Tawfik</strong>
+          <br />
+          Développement : <strong>Billy .M</strong>
         </p>
         <p>Hébergement : Vercel Inc. · Paiements : Stripe Payments Europe Ltd.</p>
       </article>

@@ -10,7 +10,7 @@ export function AccountMenu({
 }) {
   if (!user) {
     return (
-      <Button asChild size="sm">
+      <Button asChild size="sm" className="min-h-11 px-4 md:min-h-9 md:px-3">
         <Link href="/auth/connexion">Connexion</Link>
       </Button>
     );
@@ -21,7 +21,7 @@ export function AccountMenu({
   return (
     <Link
       href="/compte"
-      className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground"
+      className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground md:h-9 md:w-9"
       aria-label="Mon compte"
     >
       {initials || '•'}

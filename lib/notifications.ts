@@ -138,7 +138,7 @@ function emailLayout(title: string, body: string, actionUrl?: string, firstName?
     <p>${greeting}</p>
     <p>${body}</p>
     ${cta}
-    <p style="color:#6b7280;font-size:12px;margin-top:32px">MarchéGo · MAAYOUD.B · Bruxelles · <a href="${process.env.NEXT_PUBLIC_APP_URL}/legal/confidentialite">Confidentialité</a></p>
+    <p style="color:#6b7280;font-size:12px;margin-top:32px">MarchéGo · Conception M. El Tawfik · Développement Billy .M · Bruxelles · <a href="${process.env.NEXT_PUBLIC_APP_URL}/legal/confidentialite">Confidentialité</a></p>
   </div>
 </body></html>`;
 }

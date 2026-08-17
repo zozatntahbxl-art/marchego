@@ -202,21 +202,22 @@ export function MarketsExplorer({
           <h2 className="section-title">{title}</h2>
           <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
         </div>
-        <div className="flex rounded-full border border-border/80 bg-card/80 p-1 shadow-soft">
+        <div className="flex w-full rounded-full border border-border/80 bg-card/80 p-1 shadow-soft sm:w-auto">
           {(
             [
               ['split', MapIcon, 'Carte'],
-              ['list', List, 'Grille'],
-              ['map', MapPin, 'Plein écran'],
+              ['list', List, 'Liste'],
+              ['map', MapPin, 'Pleine'],
             ] as const
           ).map(([key, Icon, label]) => (
             <button
               key={key}
               type="button"
               onClick={() => setView(key)}
-              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
+              className={`flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-full px-2.5 text-xs font-semibold transition sm:flex-none sm:px-3.5 ${
                 view === key ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
               }`}
+              aria-pressed={view === key}
             >
               <Icon className="h-3.5 w-3.5" />
               {label}
@@ -238,7 +239,7 @@ export function MarketsExplorer({
             />
           </div>
 
-          <div className="flex gap-1.5 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="no-scrollbar -mx-1 flex snap-x snap-mandatory gap-1.5 overflow-x-auto px-1 pb-0.5">
             <RegionChip
               active={!region}
               label="Belgique"
@@ -260,7 +261,7 @@ export function MarketsExplorer({
 
           {region ? (
             <select
-              className="h-11 w-full rounded-2xl border bg-background px-3 text-sm"
+              className="h-12 w-full rounded-2xl border bg-background px-3 text-base md:h-11 md:text-sm"
               value={city}
               onChange={(e) => setCity(e.target.value)}
               aria-label="Commune"
@@ -277,7 +278,7 @@ export function MarketsExplorer({
               <button
                 type="button"
                 onClick={() => setNearMe((v) => !v)}
-                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                className={`inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-semibold transition ${
                   nearMe
                     ? 'border-[#c45c26] bg-[#c45c26] text-white shadow-soft'
                     : 'border-orange-200 bg-orange-50 text-orange-900 hover:border-orange-300'
@@ -320,7 +321,7 @@ export function MarketsExplorer({
           <button
             type="button"
             onClick={() => setMoreFilters((v) => !v)}
-            className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3.5 py-1.5 text-sm font-semibold text-white shadow-soft hover:bg-stall-600"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-white shadow-soft hover:bg-stall-600"
             aria-expanded={moreFilters}
           >
             <SlidersHorizontal className="h-4 w-4" />
@@ -410,8 +411,8 @@ export function MarketsExplorer({
           <GeoMap
             className={
               view === 'map'
-                ? 'h-[min(70vh,640px)] w-full overflow-hidden rounded-[1.75rem] border'
-                : 'h-[260px] w-full overflow-hidden lg:h-full lg:rounded-none lg:border-0'
+                ? 'h-[min(58dvh,520px)] w-full overflow-hidden rounded-[1.75rem] border sm:h-[min(70vh,640px)]'
+                : 'h-[min(38vh,220px)] w-full overflow-hidden sm:h-[260px] lg:h-full lg:rounded-none lg:border-0'
             }
             center={origin}
             zoom={8}
@@ -426,7 +427,7 @@ export function MarketsExplorer({
             className={
               view === 'list'
                 ? 'grid gap-4 sm:grid-cols-2 xl:grid-cols-3'
-                : 'max-h-[min(52vh,420px)] overflow-y-auto overscroll-contain border-t lg:max-h-none lg:border-t-0 lg:border-l'
+                : 'max-h-[min(48dvh,380px)] overflow-y-auto overscroll-contain border-t lg:max-h-none lg:border-t-0 lg:border-l'
             }
           >
             {view === 'split' && selected && (
@@ -514,7 +515,7 @@ function MarketRow({
     <button
       type="button"
       onClick={onSelect}
-      className={`flex w-full items-stretch gap-3 border-b px-3 py-3 text-left transition hover:bg-secondary/50 ${
+      className={`flex w-full min-h-[76px] items-stretch gap-3 border-b px-3 py-3 text-left transition hover:bg-secondary/50 ${
         selected ? 'bg-market-50' : ''
       }`}
     >
@@ -640,7 +641,7 @@ function RegionChip({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-2 text-left transition ${
+      className={`inline-flex min-h-11 shrink-0 snap-start items-center gap-2 rounded-full border px-3.5 py-2 text-left transition ${
         active ? tones[tone].on : tones[tone].off
       }`}
     >
@@ -686,7 +687,7 @@ function Chip({
       type="button"
       onClick={onClick}
       className={cn(
-        'inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-semibold transition',
+        'inline-flex min-h-11 items-center rounded-full border px-3 py-2 text-xs font-semibold transition sm:min-h-0 sm:py-1.5',
         active
           ? 'border-market-700 bg-market-700 text-white'
           : 'border-market-200 bg-white/80 text-market-800 hover:border-market-400 hover:text-market-900',

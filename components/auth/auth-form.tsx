@@ -50,7 +50,7 @@ export function AuthForm({ mode, next }: { mode: 'login' | 'register'; next?: st
     <form onSubmit={onSubmit} className="space-y-4">
       {mode === 'register' && (
         <>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2">
             <div>
               <Label htmlFor="firstName">Prénom</Label>
               <Input id="firstName" name="firstName" required />
@@ -73,7 +73,7 @@ export function AuthForm({ mode, next }: { mode: 'login' | 'register'; next?: st
             ].map(([value, label, hint]) => (
               <label
                 key={value}
-                className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-3 text-sm transition ${
+                className={`flex min-h-11 cursor-pointer items-start gap-3 rounded-2xl border p-3.5 text-sm transition ${
                   role === value ? 'border-primary bg-primary/5' : 'border-border/80'
                 }`}
               >

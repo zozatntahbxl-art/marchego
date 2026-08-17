@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "description": "MarchéGo — plateforme belge de livraison de courses de marchés",
-  "author": "MAAYOUD.B",
+  "author": "Conception: M. El Tawfik · Développement: Billy .M",
   "engines": {
     "node": ">=20.0.0"
   },

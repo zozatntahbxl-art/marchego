@@ -210,7 +210,7 @@ export function MarketCatalog(props: {
             <label className="text-sm font-medium">
               Date
               <select
-                className="mt-1 h-11 w-full rounded-xl border bg-background px-3"
+                className="mt-1 h-12 w-full rounded-xl border bg-background px-3 text-base md:h-11 md:text-sm"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
               >
@@ -233,7 +233,7 @@ export function MarketCatalog(props: {
             <label className="text-sm font-medium">
               Trier
               <select
-                className="mt-1 h-11 w-full rounded-xl border bg-background px-3"
+                className="mt-1 h-12 w-full rounded-xl border bg-background px-3 text-base md:h-11 md:text-sm"
                 value={sort}
                 onChange={(e) => setSort(e.target.value as typeof sort)}
               >
@@ -247,7 +247,7 @@ export function MarketCatalog(props: {
         </div>
 
         <GeoMap
-          className="h-56 w-full overflow-hidden rounded-2xl border"
+          className="h-44 w-full overflow-hidden rounded-2xl border sm:h-56"
           center={{ latitude: props.market.latitude, longitude: props.market.longitude }}
           zoom={14}
           markers={[
@@ -262,7 +262,7 @@ export function MarketCatalog(props: {
           ]}
         />
 
-        <div className="no-scrollbar flex gap-2 overflow-x-auto">
+        <div className="no-scrollbar -mx-1 flex snap-x snap-mandatory gap-2 overflow-x-auto px-1">
           <FilterChip active={!category} onClick={() => setCategory('')}>
             Toutes catégories
           </FilterChip>
@@ -343,7 +343,7 @@ export function MarketCatalog(props: {
                     )}
                     <div className="mt-auto flex items-center justify-between">
                       <span className="text-xs text-muted-foreground">{p.stock} en stock</span>
-                      <Button size="sm" onClick={() => add(p.id)} disabled={pending || p.stock === 0}>
+                      <Button size="sm" className="min-h-11 px-4" onClick={() => add(p.id)} disabled={pending || p.stock === 0}>
                         Ajouter
                       </Button>
                     </div>
@@ -374,7 +374,7 @@ function FilterChip({
     <button
       type="button"
       onClick={onClick}
-      className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold capitalize ${
+      className={`min-h-11 shrink-0 snap-start rounded-full border px-3.5 py-2 text-xs font-semibold capitalize ${
         active ? 'border-primary bg-primary text-primary-foreground' : 'bg-card text-muted-foreground'
       }`}
     >

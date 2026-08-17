@@ -30,7 +30,7 @@ export function SiteFooter() {
             <Link
               key={l.href}
               href={l.href}
-              className="rounded-lg py-1 text-muted-foreground transition hover:text-foreground"
+              className="flex min-h-11 items-center rounded-lg py-2 text-muted-foreground transition hover:text-foreground"
             >
               {l.label}
             </Link>
@@ -39,7 +39,9 @@ export function SiteFooter() {
       </div>
       <div className="container mt-10 border-t border-border/70 pt-6">
         <p className="text-sm text-foreground">
-          Conception et développement : <span className="font-semibold">MAAYOUD.B</span>
+          Conception : <span className="font-semibold">M. El Tawfik</span>
+          <span className="text-muted-foreground"> · </span>
+          Développement : <span className="font-semibold">Billy .M</span>
         </p>
         <p className="mt-1 text-xs text-muted-foreground">© {new Date().getFullYear()} MarchéGo · Belgique</p>
       </div>
