@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/prisma-env.cjs && next build",
+    "build": "node scripts/prisma-env.cjs build",
     "postinstall": "node scripts/prisma-env.cjs",
     "start": "next start",
     "lint": "next lint",

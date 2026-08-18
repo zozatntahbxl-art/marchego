@@ -4,8 +4,9 @@ import { withSentryConfig } from '@sentry/nextjs';
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  eslint: { ignoreDuringBuilds: true },
   transpilePackages: ['maplibre-gl'],
+  eslint: { ignoreDuringBuilds: true },
+  typescript: { ignoreBuildErrors: false },
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: '**.supabase.co' },
@@ -56,7 +57,12 @@ const sentryOptions = {
   hideSourceMaps: true,
 };
 
-// Sentry n'est activé que si un DSN est fourni, pour ne pas casser les builds locaux.
-export default process.env.NEXT_PUBLIC_SENTRY_DSN
-  ? withSentryConfig(nextConfig, sentryOptions)
-  : nextConfig;
+const sentryDsn = process.env.NEXT_PUBLIC_SENTRY_DSN ?? '';
+const sentryReady =
+  sentryDsn.startsWith('https://') &&
+  sentryDsn.includes('ingest') &&
+  Boolean(process.env.SENTRY_AUTH_TOKEN) &&
+  !sentryDsn.includes('…') &&
+  !/aBcDe/i.test(sentryDsn);
+
+export default sentryReady ? withSentryConfig(nextConfig, sentryOptions) : nextConfig;

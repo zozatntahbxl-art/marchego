@@ -5,12 +5,8 @@ import { MarketsExplorer } from '@/components/markets/markets-explorer';
 
 export const dynamic = 'force-dynamic';
 
-export default async function MarketsIndexPage({
-  searchParams,
-}: {
-  searchParams: { q?: string; kind?: string; jour?: string; region?: string };
-}) {
-  const markets = await prisma.market.findMany({
+async function loadMarkets() {
+  return prisma.market.findMany({
     where: { isActive: true },
     include: {
       schedules: true,
@@ -19,6 +15,19 @@ export default async function MarketsIndexPage({
     },
     orderBy: { name: 'asc' },
   });
+}
+
+export default async function MarketsIndexPage({
+  searchParams,
+}: {
+  searchParams: { q?: string; kind?: string; jour?: string; region?: string };
+}) {
+  let markets: Awaited<ReturnType<typeof loadMarkets>> = [];
+  try {
+    markets = await loadMarkets();
+  } catch {
+    markets = [];
+  }
 
   const cards = markets.map((m) => ({
     id: m.id,

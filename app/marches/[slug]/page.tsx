@@ -13,27 +13,32 @@ export default async function MarketPage({
   params: { slug: string };
   searchParams: { date?: string; q?: string; categorie?: string };
 }) {
-  const market = await prisma.market.findUnique({
-    where: { slug: params.slug },
-    include: {
-      schedules: true,
-      closures: true,
-      marketVendors: {
-        where: { isPresent: true },
-        include: {
-          vendor: {
-            include: {
-              products: {
-                where: { isAvailable: true, isApproved: true },
-                include: { category: true },
-                orderBy: { name: 'asc' },
+  let market;
+  try {
+    market = await prisma.market.findUnique({
+      where: { slug: params.slug },
+      include: {
+        schedules: true,
+        closures: true,
+        marketVendors: {
+          where: { isPresent: true },
+          include: {
+            vendor: {
+              include: {
+                products: {
+                  where: { isAvailable: true, isApproved: true },
+                  include: { category: true },
+                  orderBy: { name: 'asc' },
+                },
               },
             },
           },
         },
       },
-    },
-  });
+    });
+  } catch {
+    notFound();
+  }
   if (!market) notFound();
 
   const opening = computeMarketOpening({
