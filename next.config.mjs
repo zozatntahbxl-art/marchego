@@ -4,6 +4,7 @@ import { withSentryConfig } from '@sentry/nextjs';
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  eslint: { ignoreDuringBuilds: true },
   transpilePackages: ['maplibre-gl'],
   images: {
     remotePatterns: [

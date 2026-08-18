@@ -127,16 +127,27 @@ RGPD : `GET` / `DELETE /api/account/gdpr`.
 1. Créez un projet Next.js (Node 20) à partir de ce dépôt.
 2. Provisionnez un Postgres **PostGIS**.
 3. Renseignez les variables d’environnement (production + preview).
-4. Le build exécute `prisma generate && next build`.
-5. Après le premier déploiement, appliquez le schéma et les données :
+4. Le build génère Prisma puis Next.js. **Sans `DATABASE_URL` et `DIRECT_URL` dans Vercel → Settings → Environment Variables, le site se construit mais les pages base de données échouent.**
+5. Après le premier déploiement, appliquez le schéma :
 
 ```bash
 npx prisma migrate deploy
 npm run db:seed
 ```
 
+Variables **obligatoires** sur Vercel (Production + Preview) :
+
+- `DATABASE_URL` — URL pooler Postgres (Neon / Supabase)
+- `DIRECT_URL` — URL directe (si absente, recopiez `DATABASE_URL`)
+- `APP_SECRET` — au moins 16 caractères
+- `ENCRYPTION_KEY` — 64 caractères hexadécimaux (`openssl rand -hex 32`)
+- `NEXT_PUBLIC_APP_URL` — `https://votre-projet.vercel.app`
+- `CRON_SECRET`
+
+Stripe (paiement) : `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`.
+
 6. Webhook Stripe : `https://<domaine>/api/webhooks/stripe`.
-7. Cron : `vercel.json` interroge `/api/cron/assign` chaque minute.
+7. Cron : `vercel.json` interroge `/api/cron/assign` une fois par jour (03:00 UTC).
 
 `NEXT_PUBLIC_APP_URL` doit correspondre au domaine Vercel (ou un domaine personnalisé).
 

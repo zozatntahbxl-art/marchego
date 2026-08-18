@@ -5,12 +5,12 @@
   "description": "MarchéGo — plateforme belge de livraison de courses de marchés",
   "author": "Conception: M. El Tawfik · Développement: Billy .M",
   "engines": {
-    "node": ">=20.0.0"
+    "node": "20.x"
   },
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
-    "postinstall": "prisma generate",
+    "build": "node scripts/prisma-env.cjs && next build",
+    "postinstall": "node scripts/prisma-env.cjs",
     "start": "next start",
     "lint": "next lint",
     "format": "prettier --write \"**/*.{ts,tsx,md,json,css}\"",
